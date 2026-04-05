@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clock & Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fff;
+            color: #1e3a5f;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .clock-section {
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .clock-section.hidden {
+            display: none;
+        }
+
+        .clock-header {
+            width: 100%;
+            max-width: 800px;
+            padding: 10px 0;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 3em;
+            text-align: center;
+            color: #1e3a5f;
+            background: transparent;
+            margin-bottom: 20px;
+            outline: none;
+            font-weight: 400;
+            transition: border-color 0.2s;
+        }
+
+        .clock-header:focus {
+            border-bottom-color: #e0e0e0;
+        }
+
+        .clock-header::placeholder {
+            color: #ccc;
+        }
+
+        .clock {
+            font-size: 14em;
+            text-align: center;
+            font-weight: 300;
+            color: #1e3a5f;
+            letter-spacing: 8px;
+            transition: all 0.3s;
+        }
+
+        .clock.hidden {
+            display: none;
+        }
+
+        .clock.small {
+            position: fixed;
+            top: 30px;
+            right: 40px;
+            font-size: 6em;
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        .toggle-timer {
+            margin-top: 40px;
+            padding: 16px 40px;
+            background: none;
+            border: 2px solid #1e3a5f;
+            border-radius: 10px;
+            color: #1e3a5f;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0;
+        }
+
+        .clock-section:hover .toggle-timer {
+            opacity: 1;
+        }
+
+        .toggle-timer:hover {
+            background: #1e3a5f;
+            color: white;
+        }
+
+        .toggle-timer.hidden {
+            display: none;
+        }
+
+        .timer-section {
+            max-width: 800px;
+            width: 100%;
+            display: none;
+            text-align: center;
+        }
+
+        .timer-section.visible {
+            display: block;
+        }
+
+        .timer-title-display {
+            font-size: 3.5em;
+            color: #1e3a5f;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .timer-setup {
+            margin-bottom: 30px;
+        }
+
+        .timer-setup.hidden {
+            display: none;
+        }
+
+        .timer-title {
+            width: 100%;
+            padding: 20px 0;
+            border: none;
+            border-bottom: 3px solid #e0e0e0;
+            font-size: 2.2em;
+            text-align: center;
+            color: #1e3a5f;
+            background: transparent;
+            margin-bottom: 30px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .timer-title:focus {
+            border-color: #1e3a5f;
+        }
+
+        .timer-title::placeholder {
+            color: #aaa;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .timer-controls input {
+            flex: 1;
+            padding: 24px;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 2em;
+            text-align: center;
+            color: #1e3a5f;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .timer-controls input:focus {
+            border-color: #1e3a5f;
+        }
+
+        .timer-display {
+            font-size: 16em;
+            text-align: center;
+            margin: 30px 0;
+            color: #1e3a5f;
+            font-weight: 300;
+            letter-spacing: 8px;
+        }
+
+        .timer-running {
+            display: none;
+        }
+
+        .timer-running.visible {
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .button-group.hover-show {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .timer-running:hover .button-group.hover-show {
+            opacity: 1;
+        }
+
+        button {
+            padding: 20px 48px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.6em;
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .btn-start {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .btn-pause {
+            background: #1e3a5f;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #c62828;
+            color: white;
+        }
+
+        .btn-back {
+            background: none;
+            border: 2px solid #1e3a5f;
+            color: #1e3a5f;
+            margin-top: 30px;
+        }
+
+        .btn-back:hover {
+            background: #1e3a5f;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .snowflake {
+            position: fixed;
+            top: -30px;
+            color: #498cdd;
+            font-size: 1.2em;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0;
+            animation: fall linear forwards, fadeInOut ease-in-out forwards;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(110vh) rotate(360deg);
+            }
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+            }
+
+            5% {
+                opacity: var(--snowflake-opacity, 0.6);
+            }
+
+            80% {
+                opacity: var(--snowflake-opacity, 0.6);
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="clock-section" id="clockSection">
+        <input type="text" class="clock-header" id="clockHeader" placeholder="">
+        <div class="clock" id="clock">00:00:00</div>
+        <button class="toggle-timer" id="toggleBtn" onclick="showTimerSetup()">Set Timer</button>
+    </div>
+
+    <div class="timer-section" id="timerSection">
+        <!-- Setup View -->
+        <div class="timer-setup" id="timerSetup">
+            <input type="text" class="timer-title" id="timerTitle" placeholder="What's this timer for?">
+
+            <div class="timer-controls">
+                <input type="number" id="minutes" placeholder="Min" min="0" max="999">
+                <input type="number" id="seconds" placeholder="Sec" min="0" max="59">
+            </div>
+
+            <div class="button-group">
+                <button class="btn-start" onclick="startTimer()">Start</button>
+            </div>
+            <button class="btn-back" onclick="hideTimer()">Back to Clock</button>
+        </div>
+
+        <!-- Running View -->
+        <div class="timer-running" id="timerRunning">
+            <div class="timer-title-display" id="timerTitleDisplay"></div>
+            <div class="timer-display" id="timerDisplay">00:00</div>
+            <div class="button-group hover-show">
+                <button class="btn-pause" id="pauseBtn" onclick="togglePause()">Pause</button>
+                <button class="btn-reset" onclick="stopTimer()">Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours() % 12 || 12);
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function showTimerSetup() {
+            document.getElementById('clock').classList.add('small');
+            document.getElementById('clockHeader').style.display = 'none';
+            document.getElementById('toggleBtn').classList.add('hidden');
+            document.getElementById('timerSection').classList.add('visible');
+            document.getElementById('timerSetup').classList.remove('hidden');
+            document.getElementById('timerRunning').classList.remove('visible');
+        }
+
+        function hideTimer() {
+            document.getElementById('clock').classList.remove('small');
+            document.getElementById('clockHeader').style.display = '';
+            document.getElementById('toggleBtn').classList.remove('hidden');
+            document.getElementById('timerSection').classList.remove('visible');
+            document.getElementById('timerSetup').classList.remove('hidden');
+            document.getElementById('timerRunning').classList.remove('visible');
+            clearInterval(timerInterval);
+            isRunning = false;
+            remainingTime = 0;
+            document.getElementById('minutes').value = '';
+            document.getElementById('seconds').value = '';
+            document.getElementById('pauseBtn').textContent = 'Pause';
+            updateTimerDisplay();
+        }
+
+        function stopTimer() {
+            hideTimer();
+        }
+
+        function showRunningView() {
+            document.getElementById('timerSetup').classList.add('hidden');
+            document.getElementById('timerRunning').classList.add('visible');
+            const title = document.getElementById('timerTitle').value || 'Timer';
+            document.getElementById('timerTitleDisplay').textContent = title;
+        }
+
+        let timerInterval;
+        let remainingTime = 0;
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(remainingTime / 60);
+            const secs = remainingTime % 60;
+            document.getElementById('timerDisplay').textContent =
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                if (remainingTime === 0) {
+                    const minutes = parseInt(document.getElementById('minutes').value) || 0;
+                    const seconds = parseInt(document.getElementById('seconds').value) || 0;
+                    remainingTime = minutes * 60 + seconds;
+                }
+
+                if (remainingTime > 0) {
+                    showRunningView();
+                    updateTimerDisplay();
+                    isRunning = true;
+                    timerInterval = setInterval(() => {
+                        remainingTime--;
+                        updateTimerDisplay();
+
+                        if (remainingTime <= 0) {
+                            clearInterval(timerInterval);
+                            isRunning = false;
+                            const title = document.getElementById('timerTitle').value || 'Timer';
+                            alert(`${title} finished!`);
+                            hideTimer();
+                        }
+                    }, 1000);
+                }
+            }
+        }
+
+        function togglePause() {
+            const btn = document.getElementById('pauseBtn');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                btn.textContent = 'Resume';
+            } else {
+                isRunning = true;
+                btn.textContent = 'Pause';
+                timerInterval = setInterval(() => {
+                    remainingTime--;
+                    updateTimerDisplay();
+                    if (remainingTime <= 0) {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        const title = document.getElementById('timerTitle').value || 'Timer';
+                        alert(`${title} finished!`);
+                        hideTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            remainingTime = 0;
+            updateTimerDisplay();
+            document.getElementById('minutes').value = '';
+            document.getElementById('seconds').value = '';
+            document.getElementById('pauseBtn').textContent = 'Pause';
+        }
+
+        // Snowflakes
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.textContent = '❄';
+
+            const startX = Math.random() * 100;
+            const duration = Math.random() * 5 + 8;
+            const size = Math.random() * 1.2 + 0.8;
+            const opacity = Math.random() * 0.4 + 0.3;
+
+            snowflake.style.left = startX + 'vw';
+            snowflake.style.fontSize = size + 'em';
+            snowflake.style.setProperty('--snowflake-opacity', opacity);
+            snowflake.style.animationDuration = `${duration}s, ${duration}s`;
+
+            document.body.appendChild(snowflake);
+
+            setTimeout(() => {
+                snowflake.remove();
+            }, duration * 1000);
+        }
+
+        setInterval(createSnowflake, 300);
+    </script>
+</body>
+
+</html>
