@@ -6,19 +6,6 @@
     var STORAGE_SAVED_THEME = 'clock.savedTheme';
 
     var PRESETS = {
-        light: {
-            vars: {
-                '--bg': '#ffffff',
-                '--fg': '#1f2937',
-                '--muted': '#e5e7eb',
-                '--placeholder': '#cbd1d8',
-                '--start': '#2e7d32',
-                '--pause': '#1f2937',
-                '--stop': '#c62828',
-                '--effect-color': '#9bb8ff',
-            },
-            effect: 'none',
-        },
         dark: {
             vars: {
                 '--bg': '#0f1115',
@@ -29,6 +16,19 @@
                 '--pause': '#8ab4f8',
                 '--stop': '#f28b82',
                 '--effect-color': '#8ab4f8',
+            },
+            effect: 'none',
+        },
+        light: {
+            vars: {
+                '--bg': '#ffffff',
+                '--fg': '#1f2937',
+                '--muted': '#e5e7eb',
+                '--placeholder': '#cbd1d8',
+                '--start': '#2e7d32',
+                '--pause': '#1f2937',
+                '--stop': '#c62828',
+                '--effect-color': '#9bb8ff',
             },
             effect: 'none',
         },
@@ -47,10 +47,10 @@
         },
         sepia: {
             vars: {
-                '--bg': '#f5f0e6',
+                '--bg': '#ebe2d4',
                 '--fg': '#3d2914',
-                '--muted': '#d4c4a8',
-                '--placeholder': '#a09078',
+                '--muted': '#cec0a2',
+                '--placeholder': '#96856a',
                 '--start': '#5d4e37',
                 '--pause': '#5d4e37',
                 '--stop': '#8b4513',
@@ -86,14 +86,14 @@
         },
         mono: {
             vars: {
-                '--bg': '#ffffff',
-                '--fg': '#111111',
-                '--muted': '#d9d9d9',
-                '--placeholder': '#8a8a8a',
-                '--start': '#333333',
-                '--pause': '#555555',
-                '--stop': '#7a7a7a',
-                '--effect-color': '#808080',
+                '--bg': '#c6c6c6',
+                '--fg': '#141414',
+                '--muted': '#a5a5a5',
+                '--placeholder': '#737373',
+                '--start': '#2a2a2a',
+                '--pause': '#4a4a4a',
+                '--stop': '#6a6a6a',
+                '--effect-color': '#5c5c5c',
             },
             effect: 'none',
         },
@@ -421,15 +421,13 @@
         }, cfg.interval);
     }
 
-    // Pause particles whenever this tab OR window is out of focus. Window blur
-    // covers switching to another desktop app where visibilitychange doesn't
-    // fire; visibilitychange covers tab switches and minimization.
+    // Pause/resume only via the Page Visibility API. Tab + window switches set
+    // document.hidden reliably; pairing window blur/focus with it caused effects
+    // to stay stopped when focus/blur order didn't match visibility.
     document.addEventListener('visibilitychange', function () {
         if (document.hidden) pauseEffectsForBackground();
         else resumeEffectsIfActive();
     });
-    window.addEventListener('blur', pauseEffectsForBackground);
-    window.addEventListener('focus', resumeEffectsIfActive);
 
     // Reveal the settings gear only while the user is actively interacting.
     // Any mouse/touch/key activity surfaces it; it fades out after idle.
@@ -498,16 +496,25 @@
     }
 
     /** Paints each preset chip from the PRESETS config so chips stay in sync
-        with any preset color changes automatically. */
+        with any preset color changes automatically. Presets with an ambient
+        effect render as bg + effect-color diagonal; presets with no effect
+        render as a solid bg fill. */
     function paintPresetChips(panel) {
         Object.keys(PRESETS).forEach(function (name) {
             var chip = panel.querySelector('.preset-chip[data-preset="' + name + '"]');
             if (!chip) return;
-            var bg = normalizeHex(PRESETS[name].vars['--bg']) || PRESETS[name].vars['--bg'];
-            var sig =
-                normalizeHex(PRESETS[name].vars['--effect-color']) ||
-                PRESETS[name].vars['--effect-color'];
-            chip.style.backgroundImage = 'linear-gradient(135deg, ' + bg + ' 50%, ' + sig + ' 50%)';
+            var preset = PRESETS[name];
+            var bg = normalizeHex(preset.vars['--bg']) || preset.vars['--bg'];
+            var hasEffect = preset.effect && preset.effect !== 'none';
+            if (hasEffect) {
+                var sig =
+                    normalizeHex(preset.vars['--effect-color']) || preset.vars['--effect-color'];
+                chip.style.backgroundImage =
+                    'linear-gradient(135deg, ' + bg + ' 50%, ' + sig + ' 50%)';
+            } else {
+                chip.style.backgroundImage = 'none';
+                chip.style.backgroundColor = bg;
+            }
         });
     }
 
@@ -523,14 +530,25 @@
             var bg = normalizeHex(saved['--bg']);
             var fg = normalizeHex(saved['--fg']);
             var sig = normalizeHex(saved['--effect-color']);
+            var hasEffect = saved.effect && saved.effect !== 'none';
             if (bg) savedBtn.style.setProperty('--saved-bg', bg);
             if (fg) savedBtn.style.setProperty('--saved-fg', fg);
-            if (sig) savedBtn.style.setProperty('--saved-signature', sig);
-            else savedBtn.style.removeProperty('--saved-signature');
+            if (hasEffect && sig) {
+                savedBtn.style.backgroundImage =
+                    'linear-gradient(135deg, ' + (bg || 'var(--saved-bg)') + ' 50%, ' + sig + ' 50%)';
+                savedBtn.style.backgroundColor = '';
+            } else if (bg) {
+                savedBtn.style.backgroundImage = 'none';
+                savedBtn.style.backgroundColor = bg;
+            } else {
+                savedBtn.style.backgroundImage = '';
+                savedBtn.style.backgroundColor = '';
+            }
         } else {
             savedBtn.style.removeProperty('--saved-bg');
             savedBtn.style.removeProperty('--saved-fg');
-            savedBtn.style.removeProperty('--saved-signature');
+            savedBtn.style.backgroundImage = '';
+            savedBtn.style.backgroundColor = '';
         }
     }
 
@@ -546,7 +564,7 @@
     }
 
     function mergeFullVars(cfg) {
-        var base = PRESETS.light.vars;
+        var base = PRESETS.dark.vars;
         var out = {};
         Object.keys(base).forEach(function (k) {
             out[k] = cfg[k] != null ? cfg[k] : base[k];
@@ -627,10 +645,10 @@
         var stored = loadStoredConfig();
         if (stored && typeof stored === 'object' && Object.keys(stored).length > 0) {
             applyConfig(stored, panel);
-        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            applyPreset('dark', panel);
-        } else {
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
             applyPreset('light', panel);
+        } else {
+            applyPreset('dark', panel);
         }
 
         var savedPresetBtn = document.getElementById('presetSavedBtn');
@@ -743,7 +761,7 @@
                 try {
                     localStorage.removeItem(STORAGE_KEY);
                 } catch (e) { }
-                applyPreset('light', panel);
+                applyPreset('dark', panel);
                 persistSessionConfig(panel);
             });
         }
