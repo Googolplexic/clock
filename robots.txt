@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://clock.colemanlai.com/sitemap.xml
