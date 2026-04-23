@@ -5,301 +5,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clock & Timer</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #fff;
-            color: #1e3a5f;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow: hidden;
-        }
-
-        .clock-section {
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .clock-section.hidden {
-            display: none;
-        }
-
-        .clock-header {
-            width: 100%;
-            max-width: 800px;
-            padding: 10px 0;
-            border: none;
-            border-bottom: 2px solid transparent;
-            font-size: 3em;
-            text-align: center;
-            color: #1e3a5f;
-            background: transparent;
-            margin-bottom: 20px;
-            outline: none;
-            font-weight: 400;
-            transition: border-color 0.2s;
-        }
-
-        .clock-header:focus {
-            border-bottom-color: #e0e0e0;
-        }
-
-        .clock-header::placeholder {
-            color: #ccc;
-        }
-
-        .clock {
-            font-size: 14em;
-            text-align: center;
-            font-weight: 300;
-            color: #1e3a5f;
-            letter-spacing: 8px;
-            transition: all 0.3s;
-        }
-
-        .clock.hidden {
-            display: none;
-        }
-
-        .clock.small {
-            position: fixed;
-            top: 30px;
-            right: 40px;
-            font-size: 6em;
-            letter-spacing: 2px;
-            opacity: 0.7;
-        }
-
-        .toggle-timer {
-            margin-top: 40px;
-            padding: 16px 40px;
-            background: none;
-            border: 2px solid #1e3a5f;
-            border-radius: 10px;
-            color: #1e3a5f;
-            font-size: 1.5em;
-            cursor: pointer;
-            transition: all 0.3s;
-            opacity: 0;
-        }
-
-        .clock-section:hover .toggle-timer {
-            opacity: 1;
-        }
-
-        .toggle-timer:hover {
-            background: #1e3a5f;
-            color: white;
-        }
-
-        .toggle-timer.hidden {
-            display: none;
-        }
-
-        .timer-section {
-            max-width: 800px;
-            width: 100%;
-            display: none;
-            text-align: center;
-        }
-
-        .timer-section.visible {
-            display: block;
-        }
-
-        .timer-title-display {
-            font-size: 3.5em;
-            color: #1e3a5f;
-            margin-bottom: 20px;
-            font-weight: 400;
-        }
-
-        .timer-setup {
-            margin-bottom: 30px;
-        }
-
-        .timer-setup.hidden {
-            display: none;
-        }
-
-        .timer-title {
-            width: 100%;
-            padding: 20px 0;
-            border: none;
-            border-bottom: 3px solid #e0e0e0;
-            font-size: 2.2em;
-            text-align: center;
-            color: #1e3a5f;
-            background: transparent;
-            margin-bottom: 30px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .timer-title:focus {
-            border-color: #1e3a5f;
-        }
-
-        .timer-title::placeholder {
-            color: #aaa;
-        }
-
-        .timer-controls {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .timer-controls input {
-            flex: 1;
-            padding: 24px;
-            border: 3px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 2em;
-            text-align: center;
-            color: #1e3a5f;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .timer-controls input:focus {
-            border-color: #1e3a5f;
-        }
-
-        .timer-display {
-            font-size: 16em;
-            text-align: center;
-            margin: 30px 0;
-            color: #1e3a5f;
-            font-weight: 300;
-            letter-spacing: 8px;
-        }
-
-        .timer-running {
-            display: none;
-        }
-
-        .timer-running.visible {
-            display: block;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .button-group.hover-show {
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .timer-running:hover .button-group.hover-show {
-            opacity: 1;
-        }
-
-        button {
-            padding: 20px 48px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.6em;
-            cursor: pointer;
-            font-weight: 500;
-            transition: opacity 0.2s;
-        }
-
-        .btn-start {
-            background: #2e7d32;
-            color: white;
-        }
-
-        .btn-pause {
-            background: #1e3a5f;
-            color: white;
-        }
-
-        .btn-reset {
-            background: #c62828;
-            color: white;
-        }
-
-        .btn-back {
-            background: none;
-            border: 2px solid #1e3a5f;
-            color: #1e3a5f;
-            margin-top: 30px;
-        }
-
-        .btn-back:hover {
-            background: #1e3a5f;
-            color: white;
-        }
-
-        button:hover {
-            opacity: 0.85;
-        }
-
-        .snowflake {
-            position: fixed;
-            top: -30px;
-            color: #498cdd;
-            font-size: 1.2em;
-            pointer-events: none;
-            z-index: -1;
-            opacity: 0;
-            animation: fall linear forwards, fadeInOut ease-in-out forwards;
-        }
-
-        @keyframes fall {
-            0% {
-                transform: translateY(0) rotate(0deg);
-            }
-
-            100% {
-                transform: translateY(110vh) rotate(360deg);
-            }
-        }
-
-        @keyframes fadeInOut {
-            0% {
-                opacity: 0;
-            }
-
-            5% {
-                opacity: var(--snowflake-opacity, 0.6);
-            }
-
-            80% {
-                opacity: var(--snowflake-opacity, 0.6);
-            }
-
-            100% {
-                opacity: 0;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/themes.css">
 </head>
 
 <body>
+    <div class="settings-backdrop" id="settingsBackdrop" hidden aria-hidden="true"></div>
+    <div class="settings-corner" id="settingsCorner" title="Appearance — hover this corner or press Ctrl+comma (⌘ on Mac)">
+        <button type="button" class="settings-toggle" id="settingsToggle" aria-label="Appearance settings. Hover the top-left corner or press Control and comma." aria-expanded="false" aria-controls="settingsPanel">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+        </button>
+    </div>
+
+    <aside class="settings-panel" id="settingsPanel" hidden aria-hidden="true" role="dialog" aria-labelledby="settingsHeading">
+        <h2 id="settingsHeading" class="settings-heading">Appearance</h2>
+        <div class="preset-toolbar">
+            <div class="preset-chips" role="group" aria-label="Color presets">
+                <button type="button" class="preset-chip" data-preset="light" aria-label="Light preset" title="Light"></button>
+                <button type="button" class="preset-chip" data-preset="dark" aria-label="Dark preset" title="Dark"></button>
+                <button type="button" class="preset-chip" data-preset="mono" aria-label="Mono preset" title="Mono"></button>
+                <button type="button" class="preset-chip" data-preset="sepia" aria-label="Sepia preset" title="Sepia"></button>
+                <button type="button" class="preset-chip" data-preset="forest" aria-label="Forest preset" title="Forest"></button>
+                <button type="button" class="preset-chip" data-preset="ocean" aria-label="Ocean preset" title="Ocean"></button>
+                <button type="button" class="preset-chip" data-preset="winter" aria-label="Winter preset" title="Winter"></button>
+                <button type="button" class="preset-chip" data-preset="sakura" aria-label="Sakura preset" title="Sakura"></button>
+                <button type="button" class="preset-chip" data-preset="ember" aria-label="Ember preset" title="Ember"></button>
+                <button type="button" class="preset-chip" data-preset="cosmos" aria-label="Cosmos preset" title="Cosmos"></button>
+                <button type="button" class="preset-chip" data-preset="rain" aria-label="Rain preset" title="Rain"></button>
+                <button type="button" class="preset-chip preset-chip--saved" data-preset="saved" id="presetSavedBtn" disabled aria-disabled="true" aria-label="Saved theme" title="Save a theme first"></button>
+            </div>
+            <button type="button" class="save-theme-btn" id="saveThemeBtn">Save current theme</button>
+        </div>
+
+        <div class="settings-fields">
+            <label class="color-field"><span class="color-field-label">Background</span><input type="color" data-var="--bg" aria-label="Background color"></label>
+            <label class="color-field"><span class="color-field-label">Text</span><input type="color" data-var="--fg" aria-label="Text color"></label>
+            <label class="color-field"><span class="color-field-label">Start</span><input type="color" data-var="--start" aria-label="Start button color"></label>
+            <label class="color-field"><span class="color-field-label">Pause</span><input type="color" data-var="--pause" aria-label="Pause button color"></label>
+            <label class="color-field"><span class="color-field-label">Stop</span><input type="color" data-var="--stop" aria-label="Stop button color"></label>
+            <label class="color-field effect-row">
+                <span class="color-field-label">Effect</span>
+                <select id="effectSelect" aria-label="Ambient effect">
+                    <option value="none">None</option>
+                    <option value="snow">Snowflakes</option>
+                    <option value="petals">Petals</option>
+                    <option value="embers">Embers</option>
+                    <option value="stars">Stars</option>
+                    <option value="rain">Rain</option>
+                </select>
+            </label>
+            <label class="color-field"><span class="color-field-label">Effect color</span><input type="color" data-var="--effect-color" aria-label="Effect color"></label>
+        </div>
+        <button type="button" class="reset-link" id="resetSettings">Reset to defaults</button>
+    </aside>
+
+    <div class="timer-toast" id="timerToast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+
     <div class="clock-section" id="clockSection">
-        <input type="text" class="clock-header" id="clockHeader" placeholder="">
+        <input type="text" class="clock-header" id="clockHeader" placeholder="" aria-label="Optional heading above the clock">
         <div class="clock" id="clock">00:00:00</div>
-        <button class="toggle-timer" id="toggleBtn" onclick="showTimerSetup()">Set Timer</button>
+        <button type="button" class="toggle-timer" id="toggleBtn">Set Timer</button>
     </div>
 
     <div class="timer-section" id="timerSection">
-        <!-- Setup View -->
         <div class="timer-setup" id="timerSetup">
             <input type="text" class="timer-title" id="timerTitle" placeholder="What's this timer for?">
 
@@ -309,167 +80,25 @@
             </div>
 
             <div class="button-group">
-                <button class="btn-start" onclick="startTimer()">Start</button>
+                <button type="button" class="btn-start" id="startBtn">Start</button>
             </div>
-            <button class="btn-back" onclick="hideTimer()">Back to Clock</button>
+            <button type="button" class="btn-back" id="backBtn">Back to Clock</button>
         </div>
 
-        <!-- Running View -->
         <div class="timer-running" id="timerRunning">
             <div class="timer-title-display" id="timerTitleDisplay"></div>
             <div class="timer-display" id="timerDisplay">00:00</div>
             <div class="button-group hover-show">
-                <button class="btn-pause" id="pauseBtn" onclick="togglePause()">Pause</button>
-                <button class="btn-reset" onclick="stopTimer()">Stop</button>
+                <button type="button" class="btn-pause" id="pauseBtn">Pause</button>
+                <button type="button" class="btn-reset" id="stopBtn">Stop</button>
             </div>
         </div>
     </div>
 
-    <script>
-        function updateClock() {
-            const now = new Date();
-            const hours = String(now.getHours() % 12 || 12);
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
-        }
-
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        function showTimerSetup() {
-            document.getElementById('clock').classList.add('small');
-            document.getElementById('clockHeader').style.display = 'none';
-            document.getElementById('toggleBtn').classList.add('hidden');
-            document.getElementById('timerSection').classList.add('visible');
-            document.getElementById('timerSetup').classList.remove('hidden');
-            document.getElementById('timerRunning').classList.remove('visible');
-        }
-
-        function hideTimer() {
-            document.getElementById('clock').classList.remove('small');
-            document.getElementById('clockHeader').style.display = '';
-            document.getElementById('toggleBtn').classList.remove('hidden');
-            document.getElementById('timerSection').classList.remove('visible');
-            document.getElementById('timerSetup').classList.remove('hidden');
-            document.getElementById('timerRunning').classList.remove('visible');
-            clearInterval(timerInterval);
-            isRunning = false;
-            remainingTime = 0;
-            document.getElementById('minutes').value = '';
-            document.getElementById('seconds').value = '';
-            document.getElementById('pauseBtn').textContent = 'Pause';
-            updateTimerDisplay();
-        }
-
-        function stopTimer() {
-            hideTimer();
-        }
-
-        function showRunningView() {
-            document.getElementById('timerSetup').classList.add('hidden');
-            document.getElementById('timerRunning').classList.add('visible');
-            const title = document.getElementById('timerTitle').value || 'Timer';
-            document.getElementById('timerTitleDisplay').textContent = title;
-        }
-
-        let timerInterval;
-        let remainingTime = 0;
-        let isRunning = false;
-
-        function updateTimerDisplay() {
-            const mins = Math.floor(remainingTime / 60);
-            const secs = remainingTime % 60;
-            document.getElementById('timerDisplay').textContent =
-                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        function startTimer() {
-            if (!isRunning) {
-                if (remainingTime === 0) {
-                    const minutes = parseInt(document.getElementById('minutes').value) || 0;
-                    const seconds = parseInt(document.getElementById('seconds').value) || 0;
-                    remainingTime = minutes * 60 + seconds;
-                }
-
-                if (remainingTime > 0) {
-                    showRunningView();
-                    updateTimerDisplay();
-                    isRunning = true;
-                    timerInterval = setInterval(() => {
-                        remainingTime--;
-                        updateTimerDisplay();
-
-                        if (remainingTime <= 0) {
-                            clearInterval(timerInterval);
-                            isRunning = false;
-                            const title = document.getElementById('timerTitle').value || 'Timer';
-                            alert(`${title} finished!`);
-                            hideTimer();
-                        }
-                    }, 1000);
-                }
-            }
-        }
-
-        function togglePause() {
-            const btn = document.getElementById('pauseBtn');
-            if (isRunning) {
-                clearInterval(timerInterval);
-                isRunning = false;
-                btn.textContent = 'Resume';
-            } else {
-                isRunning = true;
-                btn.textContent = 'Pause';
-                timerInterval = setInterval(() => {
-                    remainingTime--;
-                    updateTimerDisplay();
-                    if (remainingTime <= 0) {
-                        clearInterval(timerInterval);
-                        isRunning = false;
-                        const title = document.getElementById('timerTitle').value || 'Timer';
-                        alert(`${title} finished!`);
-                        hideTimer();
-                    }
-                }, 1000);
-            }
-        }
-
-        function resetTimer() {
-            clearInterval(timerInterval);
-            isRunning = false;
-            remainingTime = 0;
-            updateTimerDisplay();
-            document.getElementById('minutes').value = '';
-            document.getElementById('seconds').value = '';
-            document.getElementById('pauseBtn').textContent = 'Pause';
-        }
-
-        // Snowflakes
-        function createSnowflake() {
-            const snowflake = document.createElement('div');
-            snowflake.classList.add('snowflake');
-            snowflake.textContent = '❄';
-
-            const startX = Math.random() * 100;
-            const duration = Math.random() * 5 + 8;
-            const size = Math.random() * 1.2 + 0.8;
-            const opacity = Math.random() * 0.4 + 0.3;
-
-            snowflake.style.left = startX + 'vw';
-            snowflake.style.fontSize = size + 'em';
-            snowflake.style.setProperty('--snowflake-opacity', opacity);
-            snowflake.style.animationDuration = `${duration}s, ${duration}s`;
-
-            document.body.appendChild(snowflake);
-
-            setTimeout(() => {
-                snowflake.remove();
-            }, duration * 1000);
-        }
-
-        setInterval(createSnowflake, 300);
-    </script>
+    <script defer src="js/clock.js"></script>
+    <script defer src="js/timer.js"></script>
+    <script defer src="js/themes.js"></script>
+    <script defer src="js/main.js"></script>
 </body>
 
 </html>

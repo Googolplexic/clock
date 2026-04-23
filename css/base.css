@@ -1,0 +1,611 @@
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #ffffff;
+    --fg: #1f2937;
+    --muted: #e5e7eb;
+    --placeholder: #cbd1d8;
+    --start: #2e7d32;
+    --pause: #1f2937;
+    --stop: #c62828;
+    --effect-color: #2f6feb;
+    /* Filled-button & derived text (overwritten by themes.js from luminance) */
+    --on-start: #ffffff;
+    --on-pause: #ffffff;
+    --on-stop: #ffffff;
+    --on-fg: #ffffff;
+    --toast-fg: var(--fg);
+    --link-on-bg: var(--fg);
+}
+
+html {
+    color-scheme: light dark;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow: hidden;
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease;
+}
+
+.particle-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    transition: opacity 0.35s ease;
+}
+
+body.timer-running-active .particle-layer {
+    opacity: 0.35;
+}
+
+.clock-section,
+.timer-section {
+    position: relative;
+    z-index: 1;
+}
+
+/* Settings */
+.settings-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    z-index: 998;
+    backdrop-filter: blur(2px);
+}
+
+/* Gear hides completely at idle. Any mouse movement, keyboard focus, or the
+   panel being open brings it back so the UI is literally just timer + text
+   when the user is not interacting. */
+.settings-corner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 84px;
+    height: 84px;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+.settings-toggle {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--fg);
+    opacity: 0;
+    cursor: pointer;
+    transition:
+        opacity 0.35s ease,
+        background-color 0.2s ease;
+}
+
+body.ui-active .settings-toggle,
+.settings-corner:hover .settings-toggle,
+.settings-corner:focus-within .settings-toggle,
+body:has(.settings-panel.is-open) .settings-toggle {
+    opacity: 0.6;
+}
+
+.settings-toggle:hover,
+.settings-toggle:focus-visible,
+body:has(.settings-panel.is-open) .settings-toggle {
+    opacity: 1;
+    background: color-mix(in srgb, var(--muted) 40%, transparent);
+    outline: none;
+}
+
+.settings-panel {
+    position: fixed;
+    top: 56px;
+    left: 12px;
+    width: min(280px, calc(100vw - 24px));
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
+    padding: 18px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(12px);
+    border: 1px solid color-mix(in srgb, var(--muted) 70%, transparent);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    z-index: 999;
+    transform: translateX(-12px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        opacity 0.22s ease,
+        transform 0.22s ease,
+        visibility 0.22s ease;
+}
+
+.settings-panel.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+.settings-heading {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-bottom: 14px;
+    color: var(--fg);
+}
+
+.preset-toolbar {
+    margin-bottom: 16px;
+}
+
+.preset-chips {
+    display: grid;
+    grid-template-columns: repeat(6, 28px);
+    gap: 10px;
+    margin-bottom: 10px;
+    justify-content: space-between;
+}
+
+.preset-chip {
+    -webkit-appearance: none;
+    appearance: none;
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--fg) 22%, transparent);
+    outline: none;
+    border-radius: 50%;
+    cursor: pointer;
+    background-color: transparent;
+    background-origin: border-box;
+    background-clip: border-box;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.preset-chip:hover:not(:disabled),
+.preset-chip:focus-visible:not(:disabled) {
+    transform: scale(1.12);
+    border-color: var(--fg);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--fg) 45%, transparent);
+}
+
+.preset-chip:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.preset-chip:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* Preset chip gradients are set inline by js/themes.js from the PRESETS config
+   (bg + effect-color). The saved chip uses the user's last saved theme. */
+.preset-chip--saved {
+    background-image: linear-gradient(
+        135deg,
+        var(--saved-bg, color-mix(in srgb, var(--muted) 80%, var(--bg))) 50%,
+        var(--saved-signature, color-mix(in srgb, var(--fg) 60%, var(--muted))) 50%
+    );
+}
+
+.preset-hint {
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: color-mix(in srgb, var(--fg) 68%, transparent);
+    margin-bottom: 10px;
+}
+
+.save-theme-btn {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px dashed color-mix(in srgb, var(--muted) 70%, var(--fg));
+    background: transparent;
+    color: var(--fg);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease;
+}
+
+.save-theme-btn:hover {
+    border-color: var(--fg);
+    border-style: solid;
+    background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+.save-theme-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--fg) 35%, transparent);
+}
+
+.settings-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.color-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: var(--fg);
+}
+
+.color-field-label {
+    flex: 1;
+    min-width: 0;
+}
+
+.color-field input[type="color"] {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--fg) 22%, transparent);
+    border-radius: 50%;
+    cursor: pointer;
+    background: transparent;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.color-field input[type="color"]:hover,
+.color-field input[type="color"]:focus-visible {
+    transform: scale(1.08);
+    border-color: var(--fg);
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--fg) 40%, transparent);
+}
+
+.color-field input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+}
+
+.color-field input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+.color-field input[type="color"]::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+.color-field select {
+    flex: 1;
+    max-width: 160px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--muted);
+    font-size: 0.85rem;
+    background: var(--bg);
+    color: var(--fg);
+    cursor: pointer;
+}
+
+.effect-row {
+    align-items: center;
+}
+
+.reset-link {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    background: none;
+    color: var(--link-on-bg);
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.reset-link:hover {
+    opacity: 0.85;
+}
+
+/* Timer toast */
+.timer-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    padding: 18px 28px;
+    border-radius: 14px;
+    font-size: 1.35rem;
+    font-weight: 500;
+    text-align: center;
+    background: color-mix(in srgb, var(--pause) 18%, var(--bg));
+    color: var(--toast-fg);
+    border: 1px solid color-mix(in srgb, var(--pause) 35%, transparent);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+    z-index: 1100;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 0.28s ease,
+        transform 0.28s ease,
+        visibility 0.28s ease;
+    pointer-events: none;
+    max-width: min(90vw, 420px);
+}
+
+.timer-toast.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.clock-section {
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.clock-section.hidden {
+    display: none;
+}
+
+.clock-header {
+    width: 100%;
+    max-width: 800px;
+    padding: 10px 0;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 3em;
+    text-align: center;
+    color: var(--fg);
+    background: transparent;
+    margin-bottom: 20px;
+    outline: none;
+    font-weight: 400;
+    transition:
+        border-color 0.2s,
+        color 0.25s ease;
+}
+
+.clock-header:focus {
+    border-bottom-color: var(--muted);
+}
+
+.clock-header::placeholder {
+    color: var(--placeholder);
+}
+
+.clock {
+    font-size: 14em;
+    text-align: center;
+    font-weight: 300;
+    color: var(--fg);
+    letter-spacing: 8px;
+    transition: all 0.3s;
+}
+
+.clock.hidden {
+    display: none;
+}
+
+.clock.small {
+    position: fixed;
+    top: 30px;
+    right: 40px;
+    font-size: 6em;
+    letter-spacing: 2px;
+    opacity: 0.7;
+}
+
+.toggle-timer {
+    margin-top: 40px;
+    padding: 16px 40px;
+    background: none;
+    border: 2px solid var(--fg);
+    border-radius: 10px;
+    color: var(--fg);
+    font-size: 1.5em;
+    cursor: pointer;
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease,
+        opacity 0.3s;
+    opacity: 0;
+}
+
+.clock-section:hover .toggle-timer {
+    opacity: 1;
+}
+
+.toggle-timer:hover {
+    background: var(--fg);
+    color: var(--on-fg);
+}
+
+.toggle-timer.hidden {
+    display: none;
+}
+
+.timer-section {
+    max-width: 800px;
+    width: 100%;
+    display: none;
+    text-align: center;
+}
+
+.timer-section.visible {
+    display: block;
+}
+
+.timer-title-display {
+    font-size: 3.5em;
+    color: var(--fg);
+    margin-bottom: 20px;
+    font-weight: 400;
+    transition: color 0.25s ease;
+}
+
+.timer-setup {
+    margin-bottom: 30px;
+}
+
+.timer-setup.hidden {
+    display: none;
+}
+
+.timer-title {
+    width: 100%;
+    padding: 20px 0;
+    border: none;
+    border-bottom: 3px solid var(--muted);
+    font-size: 2.2em;
+    text-align: center;
+    color: var(--fg);
+    background: transparent;
+    margin-bottom: 30px;
+    outline: none;
+    transition: border-color 0.2s, color 0.25s ease;
+}
+
+.timer-title:focus {
+    border-color: var(--fg);
+}
+
+.timer-title::placeholder {
+    color: var(--placeholder);
+}
+
+.timer-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.timer-controls input {
+    flex: 1;
+    padding: 24px;
+    border: 3px solid var(--muted);
+    border-radius: 12px;
+    font-size: 2em;
+    text-align: center;
+    color: var(--fg);
+    outline: none;
+    transition: border-color 0.2s, color 0.25s ease;
+    background: var(--bg);
+}
+
+.timer-controls input:focus {
+    border-color: var(--fg);
+}
+
+.timer-display {
+    font-size: 16em;
+    text-align: center;
+    margin: 30px 0;
+    color: var(--fg);
+    font-weight: 300;
+    letter-spacing: 8px;
+    transition: color 0.25s ease;
+}
+
+.timer-running {
+    display: none;
+}
+
+.timer-running.visible {
+    display: block;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.button-group.hover-show {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.timer-running:hover .button-group.hover-show {
+    opacity: 1;
+}
+
+button:not(.settings-toggle):not(.preset-chip):not(.reset-link):not(.save-theme-btn):not(.preset-chip--saved) {
+    padding: 20px 48px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.6em;
+    cursor: pointer;
+    font-weight: 500;
+    transition:
+        opacity 0.2s,
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.btn-start {
+    background: var(--start);
+    color: var(--on-start);
+}
+
+.btn-pause {
+    background: var(--pause);
+    color: var(--on-pause);
+}
+
+.btn-reset {
+    background: var(--stop);
+    color: var(--on-stop);
+}
+
+.btn-back {
+    background: none !important;
+    border: 2px solid var(--fg) !important;
+    color: var(--fg) !important;
+    margin-top: 30px;
+}
+
+.btn-back:hover {
+    background: var(--fg) !important;
+    color: var(--on-fg) !important;
+}
+
+button:not(.settings-toggle):not(.preset-chip):not(.reset-link):not(.save-theme-btn):not(.preset-chip--saved):hover {
+    opacity: 0.85;
+}
