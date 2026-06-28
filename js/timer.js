@@ -20,15 +20,104 @@ function initTimer(options) {
     const backBtn = document.getElementById('backBtn');
     const stopBtn = document.getElementById('stopBtn');
 
+    const originalDocumentTitle = document.title;
     let timerInterval;
+    let titleFlashInterval;
+    let titleRestoreTimeout;
+    let notificationPermissionRequest;
+    let endTime = 0;
     let remainingTime = 0;
     let isRunning = false;
+
+    function syncRemainingTime() {
+        if (!isRunning || !endTime) return;
+        remainingTime = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    }
 
     function updateTimerDisplay() {
         const mins = Math.floor(remainingTime / 60);
         const secs = remainingTime % 60;
         timerDisplay.textContent =
             `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function getTimerTitle() {
+        const title = timerTitle && timerTitle.value && timerTitle.value.trim();
+        return title || 'Timer';
+    }
+
+    function canUseNotifications() {
+        return 'Notification' in window;
+    }
+
+    function requestNotificationPermission() {
+        if (!canUseNotifications() || Notification.permission !== 'default') return;
+
+        try {
+            if (!notificationPermissionRequest) {
+                const permissionRequest = Notification.requestPermission();
+                notificationPermissionRequest = permissionRequest &&
+                    typeof permissionRequest.catch === 'function'
+                    ? permissionRequest.catch(function () {})
+                    : permissionRequest;
+            }
+        } catch (error) {
+            notificationPermissionRequest = null;
+        }
+    }
+
+    function showSystemNotification(title) {
+        if (!canUseNotifications() || Notification.permission !== 'granted') return;
+
+        try {
+            const notification = new Notification(`${title} finished!`, {
+                body: 'Your countdown timer is done.',
+                badge: '/favicon.svg',
+                icon: '/apple-touch-icon.svg',
+                renotify: true,
+                requireInteraction: true,
+                tag: 'clock-timer-finished'
+            });
+
+            notification.onclick = function () {
+                window.focus();
+                notification.close();
+            };
+        } catch (error) {
+            // Some browsers expose Notification but still block construction in-page.
+        }
+    }
+
+    function stopFlashingTitle() {
+        clearInterval(titleFlashInterval);
+        clearTimeout(titleRestoreTimeout);
+        titleFlashInterval = null;
+        titleRestoreTimeout = null;
+        document.title = originalDocumentTitle;
+    }
+
+    function flashTitle(title) {
+        stopFlashingTitle();
+
+        let showAlert = true;
+        const alertTitle = `${title} finished!`;
+        document.title = alertTitle;
+        titleFlashInterval = setInterval(function () {
+            document.title = showAlert ? alertTitle : originalDocumentTitle;
+            showAlert = !showAlert;
+        }, 1000);
+        titleRestoreTimeout = setTimeout(stopFlashingTitle, 30000);
+    }
+
+    function tickTimer() {
+        if (!isRunning) return;
+
+        syncRemainingTime();
+        updateTimerDisplay();
+
+        if (remainingTime <= 0) {
+            handleComplete();
+        }
     }
 
     function showTimerSetup() {
@@ -52,6 +141,7 @@ function initTimer(options) {
         if (timerRunning) timerRunning.classList.remove('visible');
         document.body.classList.remove('timer-running-active');
         clearInterval(timerInterval);
+        endTime = 0;
         isRunning = false;
         remainingTime = 0;
         if (minutesEl) minutesEl.value = '';
@@ -68,14 +158,17 @@ function initTimer(options) {
         if (timerSetup) timerSetup.classList.add('hidden');
         if (timerRunning) timerRunning.classList.add('visible');
         document.body.classList.add('timer-running-active');
-        const title = (timerTitle && timerTitle.value) || 'Timer';
+        const title = getTimerTitle();
         if (timerTitleDisplay) timerTitleDisplay.textContent = title;
     }
 
     function handleComplete() {
         clearInterval(timerInterval);
+        endTime = 0;
         isRunning = false;
-        const title = (timerTitle && timerTitle.value) || 'Timer';
+        const title = getTimerTitle();
+        showSystemNotification(title);
+        flashTitle(title);
         onFinish(title);
         hideTimer();
     }
@@ -89,17 +182,14 @@ function initTimer(options) {
             }
 
             if (remainingTime > 0) {
+                requestNotificationPermission();
+                stopFlashingTitle();
                 showRunningView();
                 updateTimerDisplay();
                 isRunning = true;
-                timerInterval = setInterval(function () {
-                    remainingTime--;
-                    updateTimerDisplay();
-
-                    if (remainingTime <= 0) {
-                        handleComplete();
-                    }
-                }, 1000);
+                endTime = Date.now() + remainingTime * 1000;
+                clearInterval(timerInterval);
+                timerInterval = setInterval(tickTimer, 250);
             }
         }
     }
@@ -108,19 +198,20 @@ function initTimer(options) {
         const btn = pauseBtn;
         if (!btn) return;
         if (isRunning) {
+            syncRemainingTime();
             clearInterval(timerInterval);
+            endTime = 0;
             isRunning = false;
+            updateTimerDisplay();
             btn.textContent = 'Resume';
         } else {
+            if (remainingTime <= 0) return;
             isRunning = true;
+            endTime = Date.now() + remainingTime * 1000;
             btn.textContent = 'Pause';
-            timerInterval = setInterval(function () {
-                remainingTime--;
-                updateTimerDisplay();
-                if (remainingTime <= 0) {
-                    handleComplete();
-                }
-            }, 1000);
+            clearInterval(timerInterval);
+            timerInterval = setInterval(tickTimer, 250);
+            tickTimer();
         }
     }
 
@@ -129,6 +220,10 @@ function initTimer(options) {
     if (startBtn) startBtn.addEventListener('click', startTimer);
     if (stopBtn) stopBtn.addEventListener('click', stopTimer);
     if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
+    document.addEventListener('visibilitychange', tickTimer);
+    window.addEventListener('focus', tickTimer);
+    window.addEventListener('focus', stopFlashingTitle);
+    window.addEventListener('pageshow', tickTimer);
 }
 
 window.initTimer = initTimer;
