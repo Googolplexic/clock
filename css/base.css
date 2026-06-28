@@ -45,12 +45,14 @@ body {
     background: var(--bg);
     color: var(--fg);
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    overflow: hidden;
+    padding: clamp(16px, 4vw, 32px);
+    overflow-x: hidden;
+    overflow-y: auto;
     transition:
         background-color 0.25s ease,
         color 0.25s ease;
@@ -72,6 +74,7 @@ body.timer-running-active .particle-layer {
 .timer-section {
     position: relative;
     z-index: 1;
+    width: min(100%, 1000px);
 }
 
 /* Settings */
@@ -399,11 +402,11 @@ body:has(.settings-panel.is-open) .settings-toggle {
     padding: 10px 0;
     border: none;
     border-bottom: 2px solid transparent;
-    font-size: 3em;
+    font-size: clamp(1.6rem, 5vw, 3rem);
     text-align: center;
     color: var(--fg);
     background: transparent;
-    margin-bottom: 20px;
+    margin-bottom: clamp(12px, 3vw, 20px);
     outline: none;
     font-weight: 400;
     transition:
@@ -420,11 +423,12 @@ body:has(.settings-panel.is-open) .settings-toggle {
 }
 
 .clock {
-    font-size: 14em;
+    font-size: clamp(4rem, 17vw, 14rem);
     text-align: center;
     font-weight: 300;
     color: var(--fg);
-    letter-spacing: 8px;
+    line-height: 1;
+    letter-spacing: clamp(1px, 0.8vw, 8px);
     transition: all 0.3s;
 }
 
@@ -434,21 +438,21 @@ body:has(.settings-panel.is-open) .settings-toggle {
 
 .clock.small {
     position: fixed;
-    top: 30px;
-    right: 40px;
-    font-size: 6em;
-    letter-spacing: 2px;
+    top: clamp(14px, 4vw, 30px);
+    right: clamp(16px, 5vw, 40px);
+    font-size: clamp(2rem, 8vw, 6rem);
+    letter-spacing: clamp(1px, 0.4vw, 2px);
     opacity: 0.7;
 }
 
 .toggle-timer {
-    margin-top: 40px;
-    padding: 16px 40px;
+    margin-top: clamp(24px, 5vw, 40px);
+    padding: clamp(12px, 2vw, 16px) clamp(24px, 5vw, 40px);
     background: none;
     border: 2px solid var(--fg);
     border-radius: 10px;
     color: var(--fg);
-    font-size: 1.5em;
+    font-size: clamp(1.05rem, 3vw, 1.5rem);
     cursor: pointer;
     transition:
         background-color 0.25s ease,
@@ -458,7 +462,8 @@ body:has(.settings-panel.is-open) .settings-toggle {
     opacity: 0;
 }
 
-.clock-section:hover .toggle-timer {
+.clock-section:hover .toggle-timer,
+.clock-section:focus-within .toggle-timer {
     opacity: 1;
 }
 
@@ -473,7 +478,6 @@ body:has(.settings-panel.is-open) .settings-toggle {
 
 .timer-section {
     max-width: 800px;
-    width: 100%;
     display: none;
     text-align: center;
 }
@@ -483,11 +487,12 @@ body:has(.settings-panel.is-open) .settings-toggle {
 }
 
 .timer-title-display {
-    font-size: 3.5em;
+    font-size: clamp(1.6rem, 6vw, 3.5rem);
     color: var(--fg);
-    margin-bottom: 20px;
+    margin-bottom: clamp(12px, 3vw, 20px);
     font-weight: 400;
     transition: color 0.25s ease;
+    overflow-wrap: anywhere;
 }
 
 .timer-setup {
@@ -500,14 +505,14 @@ body:has(.settings-panel.is-open) .settings-toggle {
 
 .timer-title {
     width: 100%;
-    padding: 20px 0;
+    padding: clamp(14px, 3vw, 20px) 0;
     border: none;
     border-bottom: 3px solid var(--muted);
-    font-size: 2.2em;
+    font-size: clamp(1.35rem, 5vw, 2.2rem);
     text-align: center;
     color: var(--fg);
     background: transparent;
-    margin-bottom: 30px;
+    margin-bottom: clamp(20px, 5vw, 30px);
     outline: none;
     transition: border-color 0.2s, color 0.25s ease;
 }
@@ -523,15 +528,16 @@ body:has(.settings-panel.is-open) .settings-toggle {
 .timer-controls {
     display: flex;
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: clamp(18px, 4vw, 24px);
 }
 
 .timer-controls input {
     flex: 1;
-    padding: 24px;
+    min-width: 0;
+    padding: clamp(16px, 4vw, 24px);
     border: 3px solid var(--muted);
     border-radius: 12px;
-    font-size: 2em;
+    font-size: clamp(1.3rem, 5vw, 2rem);
     text-align: center;
     color: var(--fg);
     outline: none;
@@ -544,12 +550,13 @@ body:has(.settings-panel.is-open) .settings-toggle {
 }
 
 .timer-display {
-    font-size: 16em;
+    font-size: clamp(4.5rem, 20vw, 16rem);
     text-align: center;
-    margin: 30px 0;
+    margin: clamp(18px, 5vw, 30px) 0;
     color: var(--fg);
     font-weight: 300;
-    letter-spacing: 8px;
+    line-height: 1;
+    letter-spacing: clamp(1px, 0.8vw, 8px);
     transition: color 0.25s ease;
 }
 
@@ -565,7 +572,7 @@ body:has(.settings-panel.is-open) .settings-toggle {
     display: flex;
     gap: 12px;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: clamp(16px, 4vw, 20px);
 }
 
 .button-group.hover-show {
@@ -578,10 +585,10 @@ body:has(.settings-panel.is-open) .settings-toggle {
 }
 
 button:not(.settings-toggle):not(.preset-chip):not(.reset-link):not(.save-theme-btn):not(.preset-chip--saved) {
-    padding: 20px 48px;
+    padding: clamp(14px, 3vw, 20px) clamp(24px, 6vw, 48px);
     border: none;
     border-radius: 12px;
-    font-size: 1.6em;
+    font-size: clamp(1rem, 3.5vw, 1.6rem);
     cursor: pointer;
     font-weight: 500;
     transition:
@@ -620,4 +627,82 @@ button:not(.settings-toggle):not(.preset-chip):not(.reset-link):not(.save-theme-
 
 button:not(.settings-toggle):not(.preset-chip):not(.reset-link):not(.save-theme-btn):not(.preset-chip--saved):hover {
     opacity: 0.85;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .toggle-timer,
+    .button-group.hover-show {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 680px) {
+    body {
+        justify-content: center;
+        padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+    }
+
+    .settings-corner {
+        width: 64px;
+        height: 64px;
+    }
+
+    .settings-toggle {
+        top: 10px;
+        left: 10px;
+        opacity: 0.75;
+    }
+
+    .settings-panel {
+        top: 60px;
+        left: 10px;
+        width: calc(100vw - 20px);
+        max-height: calc(100dvh - 76px);
+        border-radius: 12px;
+    }
+
+    .clock.small {
+        top: max(12px, env(safe-area-inset-top));
+        right: max(14px, env(safe-area-inset-right));
+        font-size: clamp(1.6rem, 10vw, 2.75rem);
+        letter-spacing: 1px;
+    }
+
+    .timer-section.visible {
+        margin-top: clamp(64px, 14vh, 96px);
+    }
+
+    .timer-controls,
+    .button-group {
+        flex-direction: column;
+    }
+
+    .timer-controls input,
+    .button-group button {
+        width: 100%;
+    }
+
+    .btn-back {
+        margin-top: 20px;
+    }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+    body {
+        justify-content: flex-start;
+    }
+
+    .clock-header,
+    .timer-title-display,
+    .timer-title {
+        margin-bottom: 10px;
+    }
+
+    .timer-display {
+        margin: 12px 0;
+    }
+
+    .toggle-timer {
+        margin-top: 16px;
+    }
 }

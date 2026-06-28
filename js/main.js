@@ -2,6 +2,12 @@
  * Bootstraps clock, timer, themes, and timer-finished toast.
  */
 (function () {
+    function registerServiceWorker() {
+        if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
+
+        navigator.serviceWorker.register('/sw.js').catch(function () {});
+    }
+
     function showTimerFinishBanner(title) {
         var el = document.getElementById('timerToast');
         if (!el) return;
@@ -16,6 +22,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        registerServiceWorker();
         if (typeof window.initThemes === 'function') window.initThemes();
         if (typeof window.initClock === 'function') window.initClock();
         if (typeof window.initTimer === 'function') {

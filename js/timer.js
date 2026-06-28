@@ -66,18 +66,9 @@ function initTimer(options) {
         }
     }
 
-    function showSystemNotification(title) {
-        if (!canUseNotifications() || Notification.permission !== 'granted') return;
-
+    function showPageNotification(title, options) {
         try {
-            const notification = new Notification(`${title} finished!`, {
-                body: 'Your countdown timer is done.',
-                badge: '/favicon.svg',
-                icon: '/apple-touch-icon.svg',
-                renotify: true,
-                requireInteraction: true,
-                tag: 'clock-timer-finished'
-            });
+            const notification = new Notification(`${title} finished!`, options);
 
             notification.onclick = function () {
                 window.focus();
@@ -86,6 +77,36 @@ function initTimer(options) {
         } catch (error) {
             // Some browsers expose Notification but still block construction in-page.
         }
+    }
+
+    function showSystemNotification(title) {
+        if (!canUseNotifications() || Notification.permission !== 'granted') return;
+
+        const options = {
+            body: 'Your countdown timer is done.',
+            badge: '/favicon.svg',
+            data: { url: '/' },
+            icon: '/apple-touch-icon.svg',
+            renotify: true,
+            requireInteraction: true,
+            tag: 'clock-timer-finished'
+        };
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready
+                .then(function (registration) {
+                    if (registration && typeof registration.showNotification === 'function') {
+                        return registration.showNotification(`${title} finished!`, options);
+                    }
+                    showPageNotification(title, options);
+                })
+                .catch(function () {
+                    showPageNotification(title, options);
+                });
+            return;
+        }
+
+        showPageNotification(title, options);
     }
 
     function stopFlashingTitle() {
